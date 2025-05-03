@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ur" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>شوگر لیول ریکارڈر</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 text-right font-sans p-4">
+  <div class="max-w-2xl mx-auto bg-white shadow-md rounded-xl p-6 mt-4">
+    <h1 class="text-2xl font-bold mb-4 text-center">📋 شوگر لیول ریکارڈر</h1>
+
+    <label class="block mb-2">📅 تاریخ منتخب کریں:</label>
+    <input id="date" type="date" class="w-full p-2 border rounded mb-4" />
+
+    <label>🌄 نہار منہ (فاسٹنگ):</label>
+    <input id="fasting" type="number" class="w-full p-2 border rounded mb-2" />
+    <label>☕ نہار منہ کے بعد:</label>
+    <input id="postFasting" type="number" class="w-full p-2 border rounded mb-2" />
+    <label>🍽️ دوپہر کھانے سے پہلے:</label>
+    <input id="beforeLunch" type="number" class="w-full p-2 border rounded mb-2" />
+    <label>🍛 دوپہر کھانے کے بعد:</label>
+    <input id="afterLunch" type="number" class="w-full p-2 border rounded mb-2" />
+    <label>🌇 رات کھانے سے پہلے:</label>
+    <input id="preDinner" type="number" class="w-full p-2 border rounded mb-2" />
+    <label>🌙 رات کھانے کے بعد:</label>
+    <input id="postDinner" type="number" class="w-full p-2 border rounded mb-4" />
+
+    <button onclick="saveEntry()" class="w-full bg-green-600 text-white p-2 rounded hover:bg-green-700">💾 محفوظ کریں</button>
+
+    <h2 class="text-xl font-bold mt-6 mb-2">📊 آج کی اوسط:</h2>
+    <p id="dailyAverage" class="mb-4 text-lg"></p>
+
+    <h2 class="text-xl font-bold mb-2">📈 پچھلے 7 دن کی اوسط:</h2>
+    <p id="weeklyAverage" class="mb-4 text-lg"></p>
+
+    <h2 class="text-xl font-bold mb-2">📆 اس مہینے کی اوسط:</h2>
+    <p id="monthlyAverage" class="text-lg"></p>
+  </div>
+
+  <script>
+    function saveEntry() {
+      const date = document.getElementById("date").value;
+      const values = [
+        +document.getElementById("fasting").value,
+        +document.getElementById("postFasting").value,
+        +document.getElementById("beforeLunch").value,
+        +document.getElementById("afterLunch").value,
+        +document.getElementById("preDinner").value,
+        +document.getElementById("postDinner").value
+      ];
+
+      if (!date || values.some(v => isNaN(v) || v <= 0)) {
+        alert("براہ کرم تمام فیلڈز درست طریقے سے بھریں");
+        return;
+      }
+
+      const average = values.reduce((a, b) => a + b, 0) / values.length;
+
+      const entry = { date, values, average };
+      const allData = JSON.parse(localStorage.getItem("sugarData") || "[]");
+      allData.push(entry);
+      localStorage.setItem("sugarData", JSON.stringify(allData));
+
+      displayAverages();
+      alert("ڈیٹا کامیابی سے محفوظ ہو گیا ✅");
+    }
+
+    function displayAverages() {
+      const data = JSON.parse(localStorage.getItem("sugarData") || "[]");
+
+      if (data.length === 0) return;
+
+      const today = new Date().toISOString().slice(0, 10);
+      const todayData = data.find(d => d.date === today);
+      document.getElementById("dailyAverage").innerText =
+        todayData ? todayData.average.toFixed(1) + " ملی گرام / ڈی ایل" : "آج کا ڈیٹا موجود نہیں";
+
+      const last7 = data.slice(-7);
+      const weeklyAvg = last7.reduce((acc, d) => acc + d.average, 0) / last7.length;
+      document.getElementById("weeklyAverage").innerText = weeklyAvg.toFixed(1) + " ملی گرام / ڈی ایل";
+
+      const thisMonth = new Date().toISOString().slice(0, 7);
+      const monthData = data.filter(d => d.date.startsWith(thisMonth));
+      const monthAvg = monthData.reduce((acc, d) => acc + d.average, 0) / monthData.length;
+      document.getElementById("monthlyAverage").innerText = monthAvg.toFixed(1) + " ملی گرام / ڈی ایل";
+    }
+
+    displayAverages();
+  </script>
+</body>
+</html>
